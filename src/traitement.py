@@ -3,6 +3,19 @@ import matplotlib.image as mpim
 import statistics
 from matplotlib import pyplot as plt
 import random
+import cv2 as cv
+
+
+def bords(img):
+    #https://fr.wikipedia.org/wiki/Filtre_de_Sobel#:~:text=En%20traitement%20d'image%20%2C%20le,contours%20sont%20mis%20en%20exergue.
+    #https://stackoverflow.com/questions/51167768/sobel-edge-detection-using-opencv
+
+    grad_x = cv.Sobel(img, cv.CV_64F, 1, 0)
+    grad_y = cv.Sobel(img, cv.CV_64F, 0, 1)
+    grad = np.sqrt(grad_x ** 2 + grad_y ** 2)
+    ims = cv.resize(grad, (640, 360))
+    cv.imshow('Edges', ims)
+    cv.waitKey(0)
 
 def k_means(img, k):
 
@@ -55,7 +68,15 @@ def supprimer_fond(img_name, k):
     masque = img_seuil == 0
     img[masque] = 0
 
-    plt.imshow(img)
+    plt.imshow(img_seuil)
     plt.show()
 
-supprimer_fond("3.jpg", 100)
+img = "../images/42.jpg"
+img_np = mpim.imread(img)
+if len(img_np.shape) != 2:
+    img_np = np.dot(img_np[..., :3], [0.2989, 0.5870, 0.1140])
+
+centroids = k_means(img_np, 50)
+img_seuil = seuillage(img_np, centroids)
+
+bords(img_seuil)
