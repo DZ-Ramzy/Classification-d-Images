@@ -1,5 +1,7 @@
 import math
 import random
+from operator import itemgetter
+
 import numpy as np
 import matplotlib.image as mpim
 import cv2
@@ -18,19 +20,6 @@ def rgb_vers_gris(img):
 
 def euclide_dist(p1, p2):
     return math.sqrt(math.pow(p1 - p2, 2))
-
-#def erosion(img):
-
-#def dilatation(img, elem_structurant):
-    """Opération morphologique visant à fusionner les petites composantes connexes
-    et à boucher les trous"""
-
-    #Somme de Minkowski = union
-    #l'élément structurant est notre fenêtre glissante sur l'image
-
-#def ouverture(img):
-    #dilatation puis erosion
-
 
 def k_means(img, max_iter, k):
     flat_img = img.flatten().astype(np.float64)
@@ -56,8 +45,6 @@ def k_means(img, max_iter, k):
             break
 
     return indices, centroids
-
-
 
 def enlever_fond(img, max_iter, k):
     ind, centro = k_means(img, max_iter, k)
@@ -90,8 +77,7 @@ def calculer_angle(ligne1, ligne2):
     angle_diff = abs(angle1 - angle2)
     return angle_diff
 
-
-def fusionner_lignes_escalier(lignes, tolerance_position=10, tolerance_angle=0.1):
+def fusionner_lignes_escalier(lignes, tolerance_position=100, tolerance_angle=0.5):
     """Fusionne les lignes adjacentes en une seule ligne par escalier."""
     fusionnees = []
 
@@ -121,72 +107,85 @@ def fusionner_lignes_escalier(lignes, tolerance_position=10, tolerance_angle=0.1
 
     return fusionnees
 
+def recup_distance(lignes):
+
+    dist = []
+    for ligne in lignes:
+        x1, y1, x2, y2 = ligne
+        dist.append(
+            (math.sqrt(math.pow(x2-x1, 2)+math.pow(y2-y1,2)), ligne)
+        )
+
+    return dist
 
 def hough_lignes(img):
     """Retourne une image avec les segments détectés avec Hough probabiliste, sans lignes verticales et lignes fusionnées en escalier."""
+    #https://www.youtube.com/watch?v=eNIrnHasZNI
 
     edges = cv2.Canny(img, 50, 150, apertureSize=3)
 
-    rho = 1
-    theta = np.pi / 180
-    threshold = 60
-    min_line_length = 50
-    max_line_gap = 5
+    plt.figure(figsize=(20, 10))
+    plt.title('Test 2')
+    plt.imshow(edges)
+    plt.show()
 
+    #rho = 1
+    #theta = np.pi / 180
+    #threshold = 60
+    #min_line_length = 50
+    #max_line_gap = 5
+
+    distResoltuion = 1
+    angleResolution = np.pi/180
+    threshold = 50 #nombre minimum de points sur la ligne
+    lines = cv2.HoughLines(edges, distResoltuion, angleResolution, threshold)
     line_image = np.zeros((*img.shape, 3), dtype=np.uint8)  # Image couleur noire
-    lignes_dessinees = []  # Liste pour stocker les lignes dessinées (non-verticales)
 
-    lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]),
-                            min_line_length, max_line_gap)
+    for ligne in lines:
+        rho, theta = ligne[0]
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a * rho
+        y0 = b * rho
+        x1 = int(x0 + 1000 * (-b))
+        y1 = int(y0 + 1000 * (a))
+        x2 = int(x0 - 1000 * (-b))
+        y2 = int(y0 - 1000 * (a))
 
-    if lines is not None:
+        cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+    print(lines)
+    print(len(lines))
+
+
+    #lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]),min_line_length, max_line_gap)
+
+    """
+        if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line[0]
             # Calcul de l'angle de la ligne
             angle = np.arctan2(y2 - y1, x2 - x1)
             # Filtrage des lignes verticales (angles proches de ±π/2)
             if not (np.abs(angle) > np.pi / 4):  # Lignes verticales (de -π/2 à π/2)
-                cv2.line(line_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                #cv2.line(line_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 lignes_dessinees.append(line)  # Ajouter la ligne à la liste des lignes dessinées
+    
 
     # Fusionner les lignes adjacentes en escalier
     lignes_fusionnees = fusionner_lignes_escalier(lignes_dessinees)
+
+    dist = recup_distance(lignes_fusionnees)
+    sorted(dist, key=lambda  x: x[0])
+    print(dist)
+    if len(dist) > 40:
+        print("caca")
+        lignes_fusionnees = [x[1] for x in dist[:40]]
+        print(len(lignes_fusionnees))
 
     # Dessiner les lignes fusionnées en escalier
     for ligne in lignes_fusionnees:
         x1, y1, x2, y2 = ligne
         cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 2)  # Lignes fusionnées en rouge
-
-    return line_image, lignes_fusionnees
-
-
-# --------- UTILISATION DU CODE ---------
-img_path = r"C:\Users\alger\OneDrive\Desktop\projet_image\images\49.jpg"
-
-img_np = mpim.imread(img_path)
-img_np_gris = rgb_vers_gris(img_np)
-img_np_gris_sans_fond = enlever_fond(img_np_gris, 10, 2)
-
-# Affiche l'image sans fond
-"""plt.figure(figsize=(10, 5))
-plt.title("Image sans fond")
-plt.imshow(img_np_gris_sans_fond, cmap='gray')
-plt.axis('off')
-plt.show()"""
-
-# Applique Canny
-img_canny = canny(img_np_gris)
-plt.figure(figsize=(10, 5))
-plt.title("Contours (Canny)")
-plt.imshow(img_canny, cmap='gray')
-plt.axis('off')
-plt.show()
-
-# Applique Hough
-img_hough, lignes = hough_lignes(img_np_gris)
-# print("Nombre de lignes détectées :", lignes)
-plt.figure(figsize=(10, 5))
-plt.title("Détection des lignes (Hough)")
-plt.imshow(img_hough, cmap='gray')
-plt.axis('off')
-plt.show()
+    """
+    return line_image, "test" #, lignes_fusionnees
