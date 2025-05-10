@@ -152,6 +152,7 @@ def hough_lignes(img):
         x2 = int(x0 - 1000 * (-b))
         y2 = int(y0 - 1000 * (a))
 
+        #pb au niveau des lignes, je pense que c'est à cause de la conversion np/cv
         cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 2)
 
     print(lines)
