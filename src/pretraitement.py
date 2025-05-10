@@ -5,7 +5,6 @@ import matplotlib.image as mpim
 import cv2
 from matplotlib import pyplot as plt
 
-
 def rgb_vers_gris(img):
     """Retourne l'image en niveau de gris si elle ne l'est pas déjà."""
     if len(img.shape) != 2:
@@ -17,46 +16,62 @@ def rgb_vers_gris(img):
     else:
         return img
 
-
 def euclide_dist(p1, p2):
     return math.sqrt(math.pow(p1 - p2, 2))
 
+#def erosion(img):
 
-def enlever_fond(img, max_iter, k=2):
-    """Enlève le fond de l'image à l'aide de k-means."""
-    centroids = [random.randint(int(np.min(img)), int(np.max(img))) for _ in range(k)]
+#def dilatation(img, elem_structurant):
+    """Opération morphologique visant à fusionner les petites composantes connexes
+    et à boucher les trous"""
+
+    #Somme de Minkowski = union
+    #l'élément structurant est notre fenêtre glissante sur l'image
+
+#def ouverture(img):
+    #dilatation puis erosion
+
+
+def k_means(img, max_iter, k):
+    flat_img = img.flatten().astype(np.float64)
+
+    centroids = [flat_img[np.random.randint(len(flat_img))]]
+    for _ in range(1, k):
+        distances = np.array([min((x - c) ** 2 for c in centroids) for x in flat_img])
+        probs = distances / distances.sum()
+        cum_probs = np.cumsum(probs)
+        r = np.random.rand()
+        index = np.searchsorted(cum_probs, r)
+        centroids.append(flat_img[index])
+    centroids = np.array(centroids)
 
     for _ in range(max_iter):
-        classes = [[] for _ in range(k)]
-
-        for i in range(img.shape[0]):
-            for j in range(img.shape[1]):
-                dist = [euclide_dist(int(img[i, j]), int(pos)) for pos in centroids]
-                index = dist.index(min(dist))
-                classes[index].append(img[i, j])
-
-        precedents = centroids.copy()
-        for index in range(len(classes)):
-            if len(classes[index]) > 0:
-                centroids[index] = np.mean(classes[index])
-
-        if np.allclose(centroids, precedents):
+        centroids_pre = centroids.copy()
+        dist = np.abs(flat_img[:, np.newaxis] - centroids)
+        indices = np.argmin(dist, axis=1)
+        for i in range(k):
+            points = flat_img[indices == i]
+            centroids[i] = points.mean() if len(points) > 0 else centroids[i]
+        if np.array_equal(centroids, centroids_pre):
             break
 
-    img_sortie = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
-
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            if abs(int(img[i, j]) - int(centroids[0])) > abs(int(img[i, j]) - int(centroids[1])):
-                img_sortie[i, j] = 1
-
-    return img_sortie
+    return indices, centroids
 
 
-def canny(img):
-    """Applique Canny sur une image."""
-    return cv2.Canny(img, 50, 150)
 
+def enlever_fond(img, max_iter, k):
+    ind, centro = k_means(img, max_iter, k)
+
+    centro = np.uint8(centro)
+    img_seuil = centro[ind]
+    img_seuil = img_seuil.reshape(img.shape)
+
+    img_fond = np.argmax(centro)
+    masque = (ind == img_fond).reshape(img.shape)
+    img_result = img.copy()
+    img_result[masque] = 255
+
+    return img_result
 
 def calculer_angle(ligne1, ligne2):
     """Calcule l'angle entre deux segments de ligne, ligne1 et ligne2."""
