@@ -14,7 +14,7 @@ def fusionner_lignes_par_bande(lignes, hauteur_img, diviseur=20):
 
     for ligne in lignes:
         x1, y1, x2, y2 = ligne
-        assignée = False
+        assignee = False
         for groupe in bandes:
             for gx1, gy1, gx2, gy2 in groupe:
                 if (
@@ -24,9 +24,9 @@ def fusionner_lignes_par_bande(lignes, hauteur_img, diviseur=20):
                     groupe.append(ligne)
                     assignée = True
                     break
-            if assignée:
+            if assignee:
                 break
-        if not assignée:
+        if not assignee:
             bandes.append([ligne])
 
     lignes_fusionnees = []
