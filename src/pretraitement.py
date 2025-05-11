@@ -124,69 +124,33 @@ def hough_lignes(img):
 
     edges = cv2.Canny(img, 50, 150, apertureSize=3)
 
-    plt.figure(figsize=(20, 10))
-    plt.title('Test 2')
-    plt.imshow(edges)
-    plt.show()
-
-    #rho = 1
-    #theta = np.pi / 180
-    #threshold = 60
-    #min_line_length = 50
-    #max_line_gap = 5
-
     distResoltuion = 1
     angleResolution = np.pi/180
     threshold = 50 #nombre minimum de points sur la ligne
     lines = cv2.HoughLines(edges, distResoltuion, angleResolution, threshold)
-    line_image = np.zeros((*img.shape, 3), dtype=np.uint8)  # Image couleur noire
+    line_image = np.zeros((*img.shape[:2], 3), dtype=np.uint8)
 
-    for ligne in lines:
-        rho, theta = ligne[0]
-        a = np.cos(theta)
-        b = np.sin(theta)
-        x0 = a * rho
-        y0 = b * rho
-        x1 = int(x0 + 1000 * (-b))
-        y1 = int(y0 + 1000 * (a))
-        x2 = int(x0 - 1000 * (-b))
-        y2 = int(y0 - 1000 * (a))
+    if lines is not None:
+        for ligne in lines:  # limite pour la lisibilité
+            rho, theta = ligne[0]
 
-        #pb au niveau des lignes, je pense que c'est à cause de la conversion np/cv
-        cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 2)
+            # Filtrage par angle
+            if not (np.deg2rad(80) < theta < np.deg2rad(100)):
+                continue
+
+            a = np.cos(theta)
+            b = np.sin(theta)
+            x0 = a * rho
+            y0 = b * rho
+            x1 = int(x0 + 1000 * (-b))
+            y1 = int(y0 + 1000 * (a))
+            x2 = int(x0 - 1000 * (-b))
+            y2 = int(y0 - 1000 * (a))
+
+            cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
 
     print(lines)
     print(len(lines))
 
-
-    #lines = cv2.HoughLinesP(edges, rho, theta, threshold, np.array([]),min_line_length, max_line_gap)
-
-    """
-        if lines is not None:
-        for line in lines:
-            x1, y1, x2, y2 = line[0]
-            # Calcul de l'angle de la ligne
-            angle = np.arctan2(y2 - y1, x2 - x1)
-            # Filtrage des lignes verticales (angles proches de ±π/2)
-            if not (np.abs(angle) > np.pi / 4):  # Lignes verticales (de -π/2 à π/2)
-                #cv2.line(line_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                lignes_dessinees.append(line)  # Ajouter la ligne à la liste des lignes dessinées
-    
-
-    # Fusionner les lignes adjacentes en escalier
-    lignes_fusionnees = fusionner_lignes_escalier(lignes_dessinees)
-
-    dist = recup_distance(lignes_fusionnees)
-    sorted(dist, key=lambda  x: x[0])
-    print(dist)
-    if len(dist) > 40:
-        print("caca")
-        lignes_fusionnees = [x[1] for x in dist[:40]]
-        print(len(lignes_fusionnees))
-
-    # Dessiner les lignes fusionnées en escalier
-    for ligne in lignes_fusionnees:
-        x1, y1, x2, y2 = ligne
-        cv2.line(line_image, (x1, y1), (x2, y2), (255, 0, 0), 2)  # Lignes fusionnées en rouge
-    """
-    return line_image, "test" #, lignes_fusionnees
+    return line_image
