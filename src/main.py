@@ -14,8 +14,7 @@ if __name__ == '__main__':
     plt.imshow(img_sans_fond, cmap='gray')
     plt.show()
 
-    img_lignes, t = pt.hough_lignes(img_sans_fond)
-    print(t)
+    img_lignes = pt.hough_lignes(img_sans_fond)
 
     plt.figure(figsize=(20, 10))
     plt.title('Test 2')
