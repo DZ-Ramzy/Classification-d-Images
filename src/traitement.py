@@ -47,8 +47,9 @@ def hough_lignes(img):
     #Transformation de hough pour détecter les lignes de l'image, on prend que les lignes horizontales, chois arbitraire mais explicable
     #par notre base d'image. Ensuite on fusionne les lignes proches parce que sinon on a juste un gros amat de lignes.
     
-    ouvert = pt.ouverture(img)
-    edges = cv2.Canny(ouvert, 50, 150, apertureSize=5)
+    #ouvert = pt.ouverture(img)
+    ferme = pt.fermeture(img)
+    edges = cv2.Canny(ferme, 50, 150, apertureSize=5)
     #edges_x = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #gradient sur x
     #edges = cv2.convertScaleAbs(edges_x)
 
@@ -74,7 +75,7 @@ def hough_lignes(img):
                 lignes.append((x1,y1,x2,y2))
                 #cv2.line(color_img,(x1,y1),(x2,y2),(0,0,255),2)
                 
-    lignes_fusionnees = fusionner_lignes_par_bande(lignes, img.shape[0], diviseur=30)
+    lignes_fusionnees = fusionner_lignes_par_bande(lignes, img.shape[0], diviseur=20)
 
     """
         for ligne in lignes_fusionnees:

@@ -16,7 +16,8 @@ def calculer_lignes_base(chemin_base):
     for image in images:
         img = mpim.imread(chemin_base+"/"+image)
         img_gris = pt.rgb_vers_gris(img)
-        img_sans_fond = pt.enlever_fond(img_gris, max_iter=20, k=2)
+        img_norm = pt.egaliser_histogramme(img_gris)
+        img_sans_fond = pt.enlever_fond(img_norm, max_iter=20, k=2)
         lignes = tt.hough_lignes(img_sans_fond)
         nb_lignes[int(image.split('.')[0])] = len(lignes)
     print(f'nb lignes = {nb_lignes}')
@@ -25,26 +26,20 @@ def calculer_lignes_base(chemin_base):
 def mae(lignes, verite):
     #Calcule l'erreur absolue moyenne.
     
-    #On part du principe qu'une marche est représentée par deux lignes, 
-    #une ligne pour le début de la contremarche, et une pour le nez de la marche.
-    
     res= 0
     for key in lignes.keys():
-        res += abs(lignes[key]//2 - verite[key])
+        res += abs(lignes[key] - verite[key])
     
     return res/len(lignes)
     
     
 def mse(lignes, verite):
     #Calcul de l'erreur quadraique moyenne.
-    
-    #On part du principe qu'une marche est représentée par deux lignes, 
-    #une ligne pour le début de la contremarche, et une pour le nez de la marche.
 
     res= 0
     for key in lignes.keys():
         print(f'clef, val, veri : {key}, {lignes[key]}, {verite[key]}')
-        res += math.pow(lignes[key]//2 - verite[key], 2)
+        res += math.pow(lignes[key] - verite[key], 2)
         
     return res/len(lignes)
 

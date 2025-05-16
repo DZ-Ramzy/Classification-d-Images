@@ -10,15 +10,50 @@ def rgb_vers_gris(img):
     else:
         return img
 
+
+def egaliser_histogramme(img):
+    # Calculer l'histogramme
+    hist = np.zeros(256, dtype=np.int32)
+    for i in range(256):
+        hist[i] = np.sum(img == i)
+
+    # Calculer la CDF
+    cdf = np.cumsum(hist)
+
+    # Normaliser la CDF
+    cdf_min = cdf[cdf > 0][0] if np.any(cdf > 0) else 0
+    cdf_norm = np.zeros_like(cdf, dtype=np.float32)
+    cdf_norm = ((cdf - cdf_min) * 255) / (cdf[-1] - cdf_min)
+    cdf_norm = np.ma.filled(np.ma.masked_equal(cdf_norm, 0), 0)
+
+    # Créer la table de correspondance
+    lookup_table = np.uint8(cdf_norm)
+
+    # Appliquer la transformation
+    img_egalisee = lookup_table[img]
+
+    return img_egalisee
+
 def ouverture(img):
     #Erosion puis dilatation.
     
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10,3))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2,6))
     
     erosion = cv2.erode(img, kernel)
     dilatation = cv2.dilate(erosion, kernel)
     
     return dilatation
+
+def fermeture(img):
+    #dilatation puis erosion
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 6))
+
+    dilatation = cv2.dilate(img, kernel)
+    erosion = cv2.erode(dilatation, kernel)
+
+
+    return erosion
 
 def euclide_dist(p1, p2):
     #Distance entre un point et un centroid, pour savoir dans quelle classe mettre le point/
