@@ -1,5 +1,5 @@
 import mesures as ms
 
 if __name__ == '__main__':
-    ms.test(4)
+    ms.base_test()
 
