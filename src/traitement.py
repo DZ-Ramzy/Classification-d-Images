@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 import pretraitement as pt
+from src.pretraitement import ouverture
+
 
 def fusionner_lignes_par_bande(lignes, hauteur_img, diviseur=20):
     #Méthode pour fusionner les lignes, un peu arbitraire, on divise la hauteur de l'image par un diviseur (hauteur parce qu'on regarde que les lignes horizontales), 
@@ -22,7 +24,7 @@ def fusionner_lignes_par_bande(lignes, hauteur_img, diviseur=20):
                     abs(y2 - gy2) <= bande_hauteur
                 ):
                     groupe.append(ligne)
-                    assignée = True
+                    assignee = True
                     break
             if assignee:
                 break
@@ -41,19 +43,17 @@ def fusionner_lignes_par_bande(lignes, hauteur_img, diviseur=20):
     return lignes_fusionnees
 
 
-def hough_lignes(img, tolerance=20):
+def hough_lignes(img):
     #Transformation de hough pour détecter les lignes de l'image, on prend que les lignes horizontales, chois arbitraire mais explicable
     #par notre base d'image. Ensuite on fusionne les lignes proches parce que sinon on a juste un gros amat de lignes.
     
-
     ouvert = pt.ouverture(img)
-
     edges = cv2.Canny(ouvert, 50, 150, apertureSize=5)
     #edges_x = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #gradient sur x
     #edges = cv2.convertScaleAbs(edges_x)
 
-    lines = cv2.HoughLines(edges, 1, np.pi / 180, 60)
-    color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 80)
+    #color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
     lignes = []
 
@@ -75,10 +75,13 @@ def hough_lignes(img, tolerance=20):
                 #cv2.line(color_img,(x1,y1),(x2,y2),(0,0,255),2)
                 
     lignes_fusionnees = fusionner_lignes_par_bande(lignes, img.shape[0], diviseur=30)
-    
-    for ligne in lignes_fusionnees:
+
+    """
+        for ligne in lignes_fusionnees:
         x1,y1,x2,y2 = ligne
         cv2.line(color_img,(x1,y1),(x2,y2),(0,0,255),4)
+    """
     
-    return color_img, lignes_fusionnees
+    #return color_img, lignes_fusionnees
+    return lignes_fusionnees
 

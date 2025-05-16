@@ -13,7 +13,7 @@ def rgb_vers_gris(img):
 def ouverture(img):
     #Erosion puis dilatation.
     
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (12,4))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10,3))
     
     erosion = cv2.erode(img, kernel)
     dilatation = cv2.dilate(erosion, kernel)
