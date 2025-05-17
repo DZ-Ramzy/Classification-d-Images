@@ -48,10 +48,8 @@ def nettoyer_composantes(img):
     #On part du principe qu'on a une image binaire, on va se servir de la bibliothèque OpenCV
 
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(img)
-    #print(num_labels)
     for i in range(1, num_labels):
         largeur = stats[i, cv2.CC_STAT_WIDTH]
-        #print(f'largeur = {largeur}')
         hauteur = stats[i, cv2.CC_STAT_HEIGHT]
         if largeur <= 300 or hauteur >= 600:
             img[labels == i] = 0
@@ -75,9 +73,11 @@ def nettoyer_composantes(img):
     return num_labels, img
 
 def calculer_composantes_connxes(img):
-    flou = cv2.GaussianBlur(img, (5, 5), 5)
 
-    edges = cv2.Canny(flou, 100, 200)
+
+    #edges = cv2.Canny(img, 100, 200)
+    edges_x = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #gradient sur x
+    edges = cv2.convertScaleAbs(edges_x)
     #plt.imshow(edges)
     #plt.show()
 
@@ -93,8 +93,6 @@ def calculer_composantes_connxes(img):
     #nb_compo, ouvert = nettoyer_composantes(erosion)
     nb_compo, ouvert = nettoyer_composantes(ferme)
 
-    # edges_x = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #gradient sur x
-    # edges = cv2.convertScaleAbs(edges_x)
 
 
     return nb_compo
