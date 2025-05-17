@@ -36,18 +36,18 @@ def egaliser_histogramme(img):
 
 def ouverture(img):
     #Erosion puis dilatation.
-    
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2,6))
-    
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,1))
+
     erosion = cv2.erode(img, kernel)
     dilatation = cv2.dilate(erosion, kernel)
-    
+
     return dilatation
 
 def fermeture(img):
     #dilatation puis erosion
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 6))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 5))
 
     dilatation = cv2.dilate(img, kernel)
     erosion = cv2.erode(dilatation, kernel)

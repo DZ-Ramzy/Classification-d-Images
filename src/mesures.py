@@ -18,9 +18,11 @@ def calculer_lignes_base(chemin_base):
         img_gris = pt.rgb_vers_gris(img)
         img_norm = pt.egaliser_histogramme(img_gris)
         img_sans_fond = pt.enlever_fond(img_norm, max_iter=20, k=2)
-        lignes = tt.hough_lignes(img_sans_fond)
-        nb_lignes[int(image.split('.')[0])] = len(lignes)
-    print(f'nb lignes = {nb_lignes}')
+        #lignes = tt.hough_lignes(img_sans_fond)
+        compos = tt.calculer_composantes_connxes(img_sans_fond)
+        #nb_lignes[int(image.split('.')[0])] = len(lignes)
+        nb_lignes[int(image.split('.')[0])] = compos
+    #print(f'nb lignes = {nb_lignes}')
     return nb_lignes
 
 def mae(lignes, verite):
@@ -81,10 +83,11 @@ def base_validation():
     print(f'Valeur de la mae : {val_mae}.')
     print(f'Valeur de la mse : {val_mse}.')
     
-    
-    
-    
-    
+def test_1():
+
+    chemin = "../escalier"
+    nombre_lignes = calculer_lignes_base(chemin)
+
     
     
     

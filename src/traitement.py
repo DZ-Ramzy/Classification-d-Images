@@ -1,7 +1,9 @@
+import statistics
+
 import numpy as np
 import cv2
 import pretraitement as pt
-from src.pretraitement import ouverture
+import matplotlib.pyplot as plt
 
 
 def fusionner_lignes_par_bande(lignes, hauteur_img, diviseur=20):
@@ -42,19 +44,82 @@ def fusionner_lignes_par_bande(lignes, hauteur_img, diviseur=20):
 
     return lignes_fusionnees
 
+def nettoyer_composantes(img):
+    #On part du principe qu'on a une image binaire, on va se servir de la bibliothèque OpenCV
+
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(img)
+    #print(num_labels)
+    for i in range(1, num_labels):
+        largeur = stats[i, cv2.CC_STAT_WIDTH]
+        #print(f'largeur = {largeur}')
+        hauteur = stats[i, cv2.CC_STAT_HEIGHT]
+        if largeur <= 300 or hauteur >= 600:
+            img[labels == i] = 0
+
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(img)
+    if num_labels >= 35:
+        lar = []
+        haut = []
+        for i in range(1,num_labels):
+            lar.append(stats[i, cv2.CC_STAT_WIDTH])
+            haut.append(stats[i, cv2.CC_STAT_HEIGHT])
+        moy_larg = statistics.mean(lar)
+        moy_haut = statistics.mean(haut)
+        img[stats[labels, cv2.CC_STAT_WIDTH] < moy_larg] = 0
+        img[stats[labels, cv2.CC_STAT_HEIGHT] > moy_haut] = 0
+
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(img)
+
+    print(f'connexes : {num_labels}')
+
+    return num_labels, img
+
+def calculer_composantes_connxes(img):
+    flou = cv2.GaussianBlur(img, (5, 5), 5)
+
+    edges = cv2.Canny(flou, 100, 200)
+    #plt.imshow(edges)
+    #plt.show()
+
+    ouvert = pt.ouverture(edges)
+    ferme = pt.fermeture(ouvert)
+
+    #plt.imshow(ferme)
+    #plt.show()
+
+    #plt.imshow(ouvert)
+    #plt.show()
+
+    #nb_compo, ouvert = nettoyer_composantes(erosion)
+    nb_compo, ouvert = nettoyer_composantes(ferme)
+
+    # edges_x = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #gradient sur x
+    # edges = cv2.convertScaleAbs(edges_x)
+
+
+    return nb_compo
 
 def hough_lignes(img):
     #Transformation de hough pour détecter les lignes de l'image, on prend que les lignes horizontales, chois arbitraire mais explicable
     #par notre base d'image. Ensuite on fusionne les lignes proches parce que sinon on a juste un gros amat de lignes.
     
     #ouvert = pt.ouverture(img)
-    ferme = pt.fermeture(img)
-    edges = cv2.Canny(ferme, 50, 150, apertureSize=5)
+
+    flou = cv2.GaussianBlur(img, (5,5), 1.5)
+    edges = cv2.Canny(flou, 100, 200)
+    ferme = pt.fermeture(edges)
+    #ouvert = pt.ouverture(ferme)
+    erosion = cv2.erode(ferme, cv2.getStructuringElement(cv2.MORPH_RECT, (1,5)))
+
+
+    ouvert = nettoyer_composantes(erosion)
+
     #edges_x = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #gradient sur x
     #edges = cv2.convertScaleAbs(edges_x)
 
-    lines = cv2.HoughLines(edges, 1, np.pi / 180, 80)
-    #color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+    lines = cv2.HoughLines(ouvert, 1, np.pi / 90, 150)
+    color_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
     lignes = []
 
@@ -75,14 +140,16 @@ def hough_lignes(img):
                 lignes.append((x1,y1,x2,y2))
                 #cv2.line(color_img,(x1,y1),(x2,y2),(0,0,255),2)
                 
-    lignes_fusionnees = fusionner_lignes_par_bande(lignes, img.shape[0], diviseur=20)
+    #lignes_fusionnees = fusionner_lignes_par_bande(lignes, img.shape[0], diviseur=20)
 
-    """
-        for ligne in lignes_fusionnees:
+    for ligne in lignes:
         x1,y1,x2,y2 = ligne
         cv2.line(color_img,(x1,y1),(x2,y2),(0,0,255),4)
-    """
+
+    plt.imshow(color_img)
+    plt.show()
+
     
     #return color_img, lignes_fusionnees
-    return lignes_fusionnees
+    return lignes
 
