@@ -1,5 +1,4 @@
 import statistics
-
 import numpy as np
 import cv2
 import pretraitement as pt
@@ -51,7 +50,7 @@ def nettoyer_composantes(img):
     for i in range(1, num_labels):
         largeur = stats[i, cv2.CC_STAT_WIDTH]
         hauteur = stats[i, cv2.CC_STAT_HEIGHT]
-        if largeur <= 300 or hauteur >= 600:
+        if largeur <= 300:
             img[labels == i] = 0
 
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(img)
@@ -74,28 +73,21 @@ def nettoyer_composantes(img):
 
 def calculer_composantes_connxes(img):
 
+    edges_y = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #gradient sur y
+    edges = cv2.convertScaleAbs(edges_y)
 
-    #edges = cv2.Canny(img, 100, 200)
-    edges_x = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=5) #gradient sur x
-    edges = cv2.convertScaleAbs(edges_x)
-    #plt.imshow(edges)
-    #plt.show()
 
     ouvert = pt.ouverture(edges)
-    ferme = pt.fermeture(ouvert)
+    #ferme = pt.fermeture(ouvert)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 5))
+    erosion = cv2.erode(ouvert, kernel)
+    kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (5,1))
+    erosion = cv2.erode(erosion, kernel2)
 
-    #plt.imshow(ferme)
-    #plt.show()
+    #nb_compo, img = nettoyer_composantes(ferme)
+    nb_compo, img = nettoyer_composantes(erosion)
 
-    #plt.imshow(ouvert)
-    #plt.show()
-
-    #nb_compo, ouvert = nettoyer_composantes(erosion)
-    nb_compo, ouvert = nettoyer_composantes(ferme)
-
-
-
-    return nb_compo
+    return nb_compo, img, erosion
 
 def hough_lignes(img):
     #Transformation de hough pour détecter les lignes de l'image, on prend que les lignes horizontales, chois arbitraire mais explicable

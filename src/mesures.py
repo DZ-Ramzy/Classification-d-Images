@@ -17,10 +17,13 @@ def calculer_lignes_base(chemin_base):
         img = mpim.imread(chemin_base+"/"+image)
         img_gris = pt.rgb_vers_gris(img)
         img_norm = pt.egaliser_histogramme(img_gris)
-        flou = cv2.GaussianBlur(img_norm, (5, 5), 5)
+        #flou = cv2.GaussianBlur(img_norm, (5, 5), 5)
+
+        flou = cv2.blur(img_norm, (15, 15))
+
         img_sans_fond = pt.enlever_fond(flou, max_iter=20, k=2)
         #lignes = tt.hough_lignes(img_sans_fond)
-        compos = tt.calculer_composantes_connxes(img_sans_fond)
+        compos, _, _ = tt.calculer_composantes_connxes(img_sans_fond)
         #nb_lignes[int(image.split('.')[0])] = len(lignes)
         nb_lignes[int(image.split('.')[0])] = compos
     #print(f'nb lignes = {nb_lignes}')
