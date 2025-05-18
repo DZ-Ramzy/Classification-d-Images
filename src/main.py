@@ -36,10 +36,10 @@ def tester_chaine_sur_une_image(img):
     plt.title('Image sans fond et composantes nettoyées')
     plt.axis('off')
 
-    plt.subplot(2, 3, 4)
-    plt.imshow(ouvert, cmap='gray')
-    plt.title('Ouvert')
-    plt.axis('off')
+    #plt.subplot(2, 3, 4)
+    #plt.imshow(ouvert, cmap='gray')
+    #plt.title('Ouvert')
+    #plt.axis('off')
 
     #plt.subplot(2, 3, 5)
     #plt.imshow(ferme, cmap='gray')
@@ -54,10 +54,11 @@ def tester_chaine_sur_une_image(img):
 
 if __name__ == '__main__':
 
-    #tester_chaine_sur_une_image('../validation/50.jpg')
-    tester_chaine_sur_une_image('../validation/22.jpg')
+    tester_chaine_sur_une_image('../validation/50.jpg')
+    #tester_chaine_sur_une_image('../validation/22.jpg')
     #tester_chaine_sur_une_image('../test/5.jpg')
     #tester_chaine_sur_une_image('../test/88.jpg')
+
     #ms.base_validation()
     #print()
     #ms.base_test()
