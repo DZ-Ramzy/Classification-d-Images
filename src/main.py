@@ -23,7 +23,7 @@ def tester_chaine_sur_une_image(img):
 
     plt.subplot(2, 3, 2)
     plt.imshow(flou, cmap='gray')
-    plt.title('Image après flou gloussien, sigma = 5')
+    plt.title('Image après flou moyen, k = 15x15')
     plt.axis('off')
 
     img_sans_fond = pt.enlever_fond(flou, max_iter=20, k=2)
@@ -54,8 +54,10 @@ def tester_chaine_sur_une_image(img):
 
 if __name__ == '__main__':
 
+    #tester_chaine_sur_une_image('../validation/50.jpg')
     #tester_chaine_sur_une_image('../validation/22.jpg')
-    ms.base_validation()
+    tester_chaine_sur_une_image('../test/5.jpg')
+    #ms.base_validation()
     #print()
     #ms.base_test()
 
