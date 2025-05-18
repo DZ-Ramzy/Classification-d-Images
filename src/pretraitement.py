@@ -2,9 +2,10 @@ import math
 import numpy as np
 import cv2
 
+
 def rgb_vers_gris(img):
-    #Conversion de l'image en niveaux de gris, image en couleurs pas utile + les algos fonctionnent que sur image en niveaux de gris.
-    
+    # Conversion de l'image en niveaux de gris, image en couleurs pas utile + les algos fonctionnent que sur image en niveaux de gris.
+
     if len(img.shape) != 2:
         return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
@@ -34,35 +35,38 @@ def egaliser_histogramme(img):
 
     return img_egalisee
 
-def ouverture(img):
-    #Erosion puis dilatation.
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+def ouverture(img):
+    # Erosion puis dilatation.
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 
     erosion = cv2.erode(img, kernel)
     dilatation = cv2.dilate(erosion, kernel)
 
     return dilatation
 
+
 def fermeture(img):
-    #dilatation puis erosion
+    # dilatation puis erosion
 
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 1))
 
     dilatation = cv2.dilate(img, kernel)
     erosion = cv2.erode(dilatation, kernel)
 
-
     return erosion
 
+
 def euclide_dist(p1, p2):
-    #Distance entre un point et un centroid, pour savoir dans quelle classe mettre le point/
-    
+    # Distance entre un point et un centroid, pour savoir dans quelle classe mettre le point/
+
     return math.sqrt(math.pow(p1 - p2, 2))
 
+
 def k_means(img, max_iter, k):
-    #Seuillage avec kmeans, on veut supprimer le fond donc on prendra k = 2.
-    
+    # Seuillage avec kmeans, on veut supprimer le fond donc on prendra k = 2.
+
     flat_img = img.flatten().astype(np.float64)
 
     centroids = [flat_img[np.random.randint(len(flat_img))]]
@@ -87,9 +91,10 @@ def k_means(img, max_iter, k):
 
     return indices, centroids
 
+
 def enlever_fond(img, max_iter, k):
-    #Fonction pour enlever le fond avec kmeans, créé un masque et met un pixel blanc sur les pixels de la classe du fond.
-    
+    # Fonction pour enlever le fond avec kmeans, créé un masque et met un pixel blanc sur les pixels de la classe du fond.
+
     ind, centro = k_means(img, max_iter, k)
 
     centro = np.uint8(centro)
@@ -102,44 +107,3 @@ def enlever_fond(img, max_iter, k):
     img_result[masque] = 255
 
     return img_result
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

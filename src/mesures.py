@@ -6,51 +6,52 @@ import math
 import csv
 import cv2
 
+
 def calculer_lignes_base(chemin_base):
-    #Permet de calculer le nombre de lignes pour chaque image de la base de données.
+    # Permet de calculer le nombre de lignes pour chaque image de la base de données.
 
     images = os.listdir(chemin_base)
     print(f'Images = {images}.')
     nb_lignes = dict()
-    
+
     for image in images:
-        img = mpim.imread(chemin_base+"/"+image)
+        img = mpim.imread(chemin_base + "/" + image)
         img_gris = pt.rgb_vers_gris(img)
         img_norm = pt.egaliser_histogramme(img_gris)
-        #flou = cv2.GaussianBlur(img_norm, (5, 5), 5)
-
         flou = cv2.blur(img_norm, (15, 15))
 
         img_sans_fond = pt.enlever_fond(flou, max_iter=20, k=2)
-        #lignes = tt.hough_lignes(img_sans_fond)
         compos, _, _ = tt.calculer_composantes_connxes(img_sans_fond)
-        #nb_lignes[int(image.split('.')[0])] = len(lignes)
+
+        # nb_lignes[int(image.split('.')[0])] = len(lignes)
         nb_lignes[int(image.split('.')[0])] = compos
-    #print(f'nb lignes = {nb_lignes}')
+
     return nb_lignes
 
+
 def mae(lignes, verite):
-    #Calcule l'erreur absolue moyenne.
-    
-    res= 0
+    # Calcule l'erreur absolue moyenne.
+
+    res = 0
     for key in lignes.keys():
         res += abs(lignes[key] - verite[key])
-    
-    return res/len(lignes)
-    
-    
-def mse(lignes, verite):
-    #Calcul de l'erreur quadraique moyenne.
 
-    res= 0
+    return res / len(lignes)
+
+
+def mse(lignes, verite):
+    # Calcul de l'erreur quadraique moyenne.
+
+    res = 0
     for key in lignes.keys():
         print(f'Numéro de l\'image, valeur calculée, verité : {key}, {lignes[key]}, {verite[key]}')
         res += math.pow(lignes[key] - verite[key], 2)
-        
-    return res/len(lignes)
+
+    return res / len(lignes)
+
 
 def verite_en_f_de_base(fichier_verite, nb_lignes):
-    #fonction pour récupérer uniquement les valeurs des images de la base consultée
+    # fonction pour récupérer uniquement les valeurs des images de la base consultée
 
     num_images = nb_lignes.keys()
     fichier_verite = open(fichier_verite, mode='r')
@@ -62,8 +63,8 @@ def verite_en_f_de_base(fichier_verite, nb_lignes):
 
     return verite
 
-def base_test():
 
+def base_test():
     chemin = "../test"
     nombre_lignes = calculer_lignes_base(chemin)
     print(f'lignes = {nombre_lignes}')
@@ -75,8 +76,8 @@ def base_test():
     print(f'Valeur de la mae : {val_mae}.')
     print(f'Valeur de la mse : {val_mse}.')
 
-def base_validation():
 
+def base_validation():
     chemin = "../validation"
     nombre_lignes = calculer_lignes_base(chemin)
     veritee_coupee = verite_en_f_de_base('../verite/labels.csv', nombre_lignes)
@@ -85,15 +86,14 @@ def base_validation():
 
     print(f'Valeur de la mae : {val_mae}.')
     print(f'Valeur de la mse : {val_mse}.')
-    
-def test_1():
 
+
+def test_1():
     chemin = "../escalier"
     nombre_lignes = calculer_lignes_base(chemin)
 
-    
-    
-    
-    
-    
-    
+
+
+
+
+
